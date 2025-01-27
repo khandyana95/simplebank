@@ -15,6 +15,7 @@ const (
 )
 
 var testQueries *Queries
+var testStore *Store
 
 func TestMain(m *testing.M) {
 
@@ -25,6 +26,7 @@ func TestMain(m *testing.M) {
 	}
 
 	testQueries = New(conn)
+	testStore = NewStore(conn)
 
 	os.Exit(m.Run())
 }
