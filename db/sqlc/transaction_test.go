@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -85,7 +84,7 @@ func TestCreateTransaction(t *testing.T) {
 		require.Equal(t, account1.Currency, fromAccount.Currency)
 		amount := acc1Balance - fromAccount.Balance
 		require.Equal(t, amount, float64(i+1)*arg.Amount)
-		fmt.Println("from account balance", fromAccount.Balance)
+		// fmt.Println("from amount", amount)
 
 		toAccount := txnResult.ToAccount
 		require.NotEmpty(t, toAccount)
@@ -95,5 +94,6 @@ func TestCreateTransaction(t *testing.T) {
 		require.Equal(t, account2.Currency, toAccount.Currency)
 		amount = toAccount.Balance - acc2Balance
 		require.Equal(t, amount, float64(i+1)*arg.Amount)
+		// fmt.Println("to amount", amount)
 	}
 }

@@ -92,6 +92,17 @@ func (store *Store) CreateTransaction(ctx context.Context, txnParams CreateTrans
 			Balance: -txnParams.Amount,
 		})
 
+		// fromAccount, err := q.GetAccount(ctx, txnParams.FromAccountId)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// fromAccUpdate := UpdateAccountParams{
+		// 	ID:      txnParams.FromAccountId,
+		// 	Balance: fromAccount.Balance - txnParams.Amount,
+		// }
+
+		// fromAccount, err = q.UpdateAccount(ctx, fromAccUpdate)
 		if err != nil {
 			return err
 		}
@@ -101,6 +112,17 @@ func (store *Store) CreateTransaction(ctx context.Context, txnParams CreateTrans
 			Balance: txnParams.Amount,
 		})
 
+		// toAccount, err := q.GetAccount(ctx, txnParams.ToAccountId)
+		// if err != nil {
+		// 	return err
+		// }
+
+		// toAccUpdate := UpdateAccountParams{
+		// 	ID:      txnParams.ToAccountId,
+		// 	Balance: toAccount.Balance + txnParams.Amount,
+		// }
+
+		// toAccount, err = q.UpdateAccount(ctx, toAccUpdate)
 		if err != nil {
 			return err
 		}
