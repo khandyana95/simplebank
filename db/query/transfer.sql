@@ -10,28 +10,11 @@ RETURNING *;
 SELECT * FROM transfers
 WHERE id = $1 LIMIT 1;
 
--- name: ListTransferByToAccountId :many
-SELECT * FROM transfers
-WHERE to_account_id = $1
-ORDER by id
-LIMIT $2
-OFFSET $3;
-
--- name: ListTransferByfromAccountId :many
-SELECT * FROM transfers
-WHERE from_account_id = $1
-ORDER by id
-LIMIT $2
-OFFSET $3;
-
 -- name: ListTransfers :many
 SELECT * FROM transfers
-WHERE from_account_id = $1
-AND   to_account_id = $2
+WHERE 
+     from_account_id = $1 OR
+     to_account_id = $2
 ORDER by id
 LIMIT $3
 OFFSET $4;
-
--- name: DeleteTransfer :exec
-DELETE FROM transfers
-WHERE id = $1;
