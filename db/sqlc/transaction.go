@@ -31,7 +31,11 @@ func (store *Store) createDBTxn(ctx context.Context, f func(*Queries) error) err
 
 	queryTxn := store.WithTx(txn)
 
+	m.Lock()
+
 	err = f(queryTxn)
+
+	m.Unlock()
 
 	if err != nil {
 		if rbErr := txn.Rollback(); rbErr != nil {
@@ -62,8 +66,6 @@ type TransferTxnResult struct {
 func (store *Store) CreateTransaction(ctx context.Context, txnParams CreateTransactionParams) (TransferTxnResult, error) {
 
 	var transferTxnResult TransferTxnResult
-
-	m.Lock()
 
 	err := store.createDBTxn(ctx, func(q *Queries) error {
 
@@ -146,8 +148,6 @@ func (store *Store) CreateTransaction(ctx context.Context, txnParams CreateTrans
 
 		return nil
 	})
-
-	m.Unlock()
 
 	return transferTxnResult, err
 }
