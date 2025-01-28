@@ -6,12 +6,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/khandyan95/simplebank/util"
 	_ "github.com/lib/pq"
-)
-
-const (
-	dbDriver   = "postgres"
-	datasource = "postgresql://root:secret@localhost:5432/simple_bank?sslmode=disable"
 )
 
 var testQueries *Queries
@@ -19,7 +15,12 @@ var testStore *Store
 
 func TestMain(m *testing.M) {
 
-	conn, err := sql.Open(dbDriver, datasource)
+	config, err := util.LoadConfing("../..")
+	if err != nil {
+		log.Fatal("cannot load config file")
+	}
+
+	conn, err := sql.Open(config.DBDriver, config.DataSource)
 
 	if err != nil {
 		log.Fatal("error in connecting to db")
