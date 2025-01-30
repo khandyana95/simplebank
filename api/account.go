@@ -7,16 +7,28 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/khandyan95/simplebank/db/sqlc"
+	"github.com/khandyan95/simplebank/token"
 	"github.com/lib/pq"
 )
 
 type createAccountRequest struct {
-	Owner    string `json:"owner" binding:"required"`
 	Name     string `json:"name" binding:"required"`
 	Currency string `json:"currency" binding:"required,currency"`
 }
 
 func (server *Server) createAccount(ctx *gin.Context) {
+
+	authPayload, ok := ctx.Get(authPayloadKey)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(token.ErrInvalidToken))
+		return
+	}
+
+	payload, ok := authPayload.(*token.Payload)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(token.ErrInvalidToken))
+		return
+	}
 
 	accRequest := createAccountRequest{}
 	if err := ctx.ShouldBindJSON(&accRequest); err != nil {
@@ -25,7 +37,7 @@ func (server *Server) createAccount(ctx *gin.Context) {
 	}
 
 	account, err := server.Store.CreateAccount(ctx, db.CreateAccountParams{
-		Owner:    accRequest.Owner,
+		Owner:    payload.Username,
 		Name:     accRequest.Name,
 		Currency: accRequest.Currency,
 	})
@@ -52,6 +64,18 @@ type accountIdRequest struct {
 
 func (server *Server) getAccount(ctx *gin.Context) {
 
+	authPayload, ok := ctx.Get(authPayloadKey)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(token.ErrInvalidToken))
+		return
+	}
+
+	payload, ok := authPayload.(*token.Payload)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(token.ErrInvalidToken))
+		return
+	}
+
 	accIdRequest := accountIdRequest{}
 	if err := ctx.ShouldBindUri(&accIdRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorMessage(err))
@@ -68,6 +92,11 @@ func (server *Server) getAccount(ctx *gin.Context) {
 		return
 	}
 
+	if payload.Username != account.Owner {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(fmt.Errorf("user not authorized to account")))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, account)
 }
 
@@ -78,6 +107,18 @@ type accountQueryParams struct {
 
 func (server *Server) listAccounts(ctx *gin.Context) {
 
+	authPayload, ok := ctx.Get(authPayloadKey)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(token.ErrInvalidToken))
+		return
+	}
+
+	payload, ok := authPayload.(*token.Payload)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(token.ErrInvalidToken))
+		return
+	}
+
 	accQueryRequest := accountQueryParams{}
 	if err := ctx.ShouldBindQuery(&accQueryRequest); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorMessage(err))
@@ -85,6 +126,7 @@ func (server *Server) listAccounts(ctx *gin.Context) {
 	}
 
 	accounts, err := server.Store.ListAccounts(ctx, db.ListAccountsParams{
+		Owner:  payload.Username,
 		Limit:  accQueryRequest.PageSize,
 		Offset: (accQueryRequest.PageID - 1) * accQueryRequest.PageSize,
 	})

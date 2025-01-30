@@ -15,14 +15,12 @@ func TestHashPassword(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, hashedPassword1)
 
-	verify, err := VerifyPassword(password, hashedPassword1)
+	err = VerifyPassword(password, hashedPassword1)
 
 	require.NoError(t, err)
-	require.Equal(t, true, verify)
 
-	verify, err = VerifyPassword(randomString(10), hashedPassword1)
+	err = VerifyPassword(randomString(10), hashedPassword1)
 	require.Error(t, err, bcrypt.ErrMismatchedHashAndPassword)
-	require.Equal(t, false, verify)
 
 	hashedPassword2, err := HashPassword(password)
 	require.NoError(t, err)

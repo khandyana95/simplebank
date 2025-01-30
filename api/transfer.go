@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	db "github.com/khandyan95/simplebank/db/sqlc"
+	"github.com/khandyan95/simplebank/token"
 )
 
 type transferRequestParams struct {
@@ -18,17 +19,36 @@ type transferRequestParams struct {
 
 func (server *Server) createAccountTransaction(ctx *gin.Context) {
 
+	authPayload, ok := ctx.Get(authPayloadKey)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(token.ErrInvalidToken))
+		return
+	}
+
+	payload, ok := authPayload.(*token.Payload)
+	if !ok {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(token.ErrInvalidToken))
+		return
+	}
+
 	req := transferRequestParams{}
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorMessage(err))
 		return
 	}
 
-	if !server.validAccount(ctx, req.FromAccountId, req.Currency) {
+	fromAccount, valid := server.validAccount(ctx, req.FromAccountId, req.Currency)
+	if !valid {
 		return
 	}
 
-	if !server.validAccount(ctx, req.ToAccountId, req.Currency) {
+	if fromAccount.Owner != payload.Username {
+		ctx.JSON(http.StatusUnauthorized, errorMessage(fmt.Errorf("user not authorized to account")))
+		return
+	}
+
+	_, valid = server.validAccount(ctx, req.ToAccountId, req.Currency)
+	if !valid {
 		return
 	}
 
@@ -47,24 +67,24 @@ func (server *Server) createAccountTransaction(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, txnResult)
 }
 
-func (server *Server) validAccount(ctx *gin.Context, accountId int64, currency string) bool {
+func (server *Server) validAccount(ctx *gin.Context, accountId int64, currency string) (db.Account, bool) {
 
-	accout, err := server.Store.GetAccount(ctx, accountId)
+	account, err := server.Store.GetAccount(ctx, accountId)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			ctx.JSON(http.StatusNotFound, errorMessage(fmt.Errorf("account with ID %v not found", accountId)))
-			return false
+			return db.Account{}, false
 		}
 		ctx.JSON(http.StatusInternalServerError, errorMessage(err))
-		return false
+		return db.Account{}, false
 	}
 
-	if accout.Currency != currency {
+	if account.Currency != currency {
 		ctx.JSON(http.StatusBadRequest,
-			errorMessage(fmt.Errorf("account ID %v currency %v do not match with request currency %v", accountId, accout.Currency, currency)))
-		return false
+			errorMessage(fmt.Errorf("account ID %v currency %v do not match with request currency %v", accountId, account.Currency, currency)))
+		return account, false
 	}
 
-	return true
+	return account, true
 
 }
