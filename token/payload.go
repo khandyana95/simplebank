@@ -8,8 +8,8 @@ import (
 )
 
 type Payload struct {
-	ID       string `json:"id"`
-	Username string `json:"username"`
+	ID       uuid.UUID `json:"id"`
+	Username string    `json:"username"`
 	jwt.RegisteredClaims
 }
 
@@ -21,7 +21,7 @@ func NewPayload(username string, duration time.Duration) (*Payload, error) {
 	}
 
 	return &Payload{
-		ID:       id.String(),
+		ID:       id,
 		Username: username,
 		RegisteredClaims: jwt.RegisteredClaims{
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

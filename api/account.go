@@ -44,7 +44,6 @@ func (server *Server) createAccount(ctx *gin.Context) {
 
 	if err != nil {
 		if pgerror, ok := err.(*pq.Error); ok {
-			fmt.Println(pgerror.Code.Name())
 			switch pgerror.Code.Name() {
 			case "foreign_key_violation", "unique_violation":
 				ctx.JSON(http.StatusForbidden, errorMessage(err))

@@ -39,8 +39,11 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	if err != nil {
 		if pqerror, ok := err.(*pq.Error); ok {
-			ctx.JSON(http.StatusInternalServerError, errorMessage(pqerror))
-			return
+			switch pqerror.Code.Name() {
+			case "unique_violation":
+				ctx.JSON(http.StatusForbidden, errorMessage(err))
+				return
+			}
 		}
 		ctx.JSON(http.StatusInternalServerError, errorMessage(err))
 		return

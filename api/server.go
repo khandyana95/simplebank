@@ -70,6 +70,7 @@ func registerRoutes(server *Server) {
 	// No auth required
 	server.Router.POST("/user", server.createUser)
 	server.Router.POST("/user/login", server.loginUser)
+	server.Router.POST("/token/renewtoken", server.renewToken)
 
 	//Auth required
 	group := server.Router.Group("/")
