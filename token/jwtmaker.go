@@ -70,7 +70,7 @@ func (jwtmaker *JWTMaker) ValidateToken(token string) (*Payload, error) {
 
 	payload, ok := JWTtoken.Claims.(*Payload)
 	if !ok {
-		return nil, ErrInvalidToken
+		return nil, jwt.ErrTokenInvalidClaims
 	}
 
 	return payload, nil
